@@ -1,11 +1,15 @@
+#[cfg(windows)]
 extern crate winapi;
 use winapi::um::tlhelp32::PROCESSENTRY32;
 use winapi::um::winnt::HANDLE;
 
+#[cfg(windows)]
 struct WindowsProcesses<'a> {
     snapshot: HANDLE,
     entry: &'a mut PROCESSENTRY32,
 }
+
+#[cfg(windows)]
 impl<'a> WindowsProcesses<'a> {
     #[cfg(windows)]
     fn set_process_priority(&self, process_handle: HANDLE, priority_level: u32) -> bool {
@@ -79,12 +83,14 @@ impl<'a> WindowsProcesses<'a> {
         unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) }
     }
 
+    #[cfg(windows)]
     fn windows_close_handle(&self) -> i32 {
         use winapi::um::handleapi::CloseHandle;
 
         unsafe { CloseHandle(self.snapshot) }
     }
 
+    #[cfg(windows)]
     pub fn get_pid_from_process_name(&mut self, process_name: &str) -> u32 {
         use std::ffi::CStr;
         self.snapshot = self.windows_create_toolhelp_32_snapshot();
@@ -105,6 +111,7 @@ impl<'a> WindowsProcesses<'a> {
     }
 }
 
+#[cfg(windows)]
 fn windows_initialise_process_entry() -> PROCESSENTRY32 {
     use std::mem::size_of;
 
@@ -142,4 +149,10 @@ pub fn get_process_id_from_name(process_name: &str) -> u32 {
     }
 
     pid
+}
+
+#[cfg(notwindows)]
+pub fn get_process_id_from_name(process_name: &str) -> u32 {
+    println!("This function has not yet been implemented on this platform...");
+    0
 }
