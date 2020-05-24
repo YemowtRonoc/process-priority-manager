@@ -151,7 +151,7 @@ pub fn get_process_id_from_name(process_name: &str) -> u32 {
     pid
 }
 
-#[cfg(notwindows)]
+#[cfg(not(windows))]
 pub fn get_process_id_from_name(process_name: &str) -> u32 {
     println!("This function has not yet been implemented on this platform...");
     0
