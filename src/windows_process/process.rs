@@ -1,6 +1,8 @@
 #[cfg(windows)]
 extern crate winapi;
+#[cfg(windows)]
 use winapi::um::tlhelp32::PROCESSENTRY32;
+#[cfg(windows)]
 use winapi::um::winnt::HANDLE;
 
 #[cfg(windows)]
