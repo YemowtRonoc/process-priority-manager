@@ -6,13 +6,13 @@ use winapi::um::tlhelp32::PROCESSENTRY32;
 use winapi::um::winnt::HANDLE;
 
 #[cfg(windows)]
-struct WindowsProcesses<'a> {
+struct WindowsProcessPriority {
     snapshot: HANDLE,
-    entry: &'a mut PROCESSENTRY32,
+    entry: PROCESSENTRY32,
 }
 
 #[cfg(windows)]
-impl<'a> WindowsProcesses<'a> {
+impl WindowsProcessPriority {
     #[cfg(windows)]
     fn set_process_priority(&self, process_handle: HANDLE, priority_level: u32) -> bool {
         use winapi::shared::minwindef::{BOOL, FALSE};
@@ -36,11 +36,10 @@ impl<'a> WindowsProcesses<'a> {
     }
 
     #[cfg(windows)]
-    fn get_pid_from_process_entry(&self) -> u32 {
+    fn set_priority_for_process_(&self, process_priority: u32) -> u32 {
         use winapi::shared::minwindef::FALSE;
         use winapi::um::handleapi::CloseHandle;
         use winapi::um::processthreadsapi::{GetProcessId, OpenProcess};
-        use winapi::um::winbase::HIGH_PRIORITY_CLASS;
         use winapi::um::winnt::PROCESS_ALL_ACCESS;
 
         let process_handle =
@@ -49,7 +48,7 @@ impl<'a> WindowsProcesses<'a> {
         // Do stuff..
         let pid = unsafe { GetProcessId(process_handle) };
 
-        self.set_process_priority(process_handle, HIGH_PRIORITY_CLASS);
+        self.set_process_priority(process_handle, process_priority);
 
         unsafe {
             CloseHandle(process_handle);
@@ -63,7 +62,7 @@ impl<'a> WindowsProcesses<'a> {
         use winapi::shared::minwindef::TRUE;
         use winapi::um::tlhelp32::Process32First;
 
-        let result = unsafe { Process32First(self.snapshot, self.entry) };
+        let result = unsafe { Process32First(self.snapshot, &mut self.entry) };
 
         result == TRUE
     }
@@ -73,7 +72,7 @@ impl<'a> WindowsProcesses<'a> {
         use winapi::shared::minwindef::TRUE;
         use winapi::um::tlhelp32::Process32Next;
 
-        let result = unsafe { Process32Next(self.snapshot, self.entry) };
+        let result = unsafe { Process32Next(self.snapshot, &mut self.entry) };
 
         result == TRUE
     }
@@ -93,16 +92,42 @@ impl<'a> WindowsProcesses<'a> {
     }
 
     #[cfg(windows)]
-    pub fn get_pid_from_process_name(&mut self, process_name: &str) -> u32 {
+    fn windows_initialise_process_entry(&self) -> PROCESSENTRY32 {
+        use std::mem::size_of;
+
+        let process_entry_size = size_of::<PROCESSENTRY32>();
+        let entry = PROCESSENTRY32 {
+            cntThreads: 0,
+            cntUsage: 0,
+            dwFlags: 0,
+            dwSize: process_entry_size as u32,
+            pcPriClassBase: 0,
+            szExeFile: [0; 260],
+            th32DefaultHeapID: 0,
+            th32ModuleID: 0,
+            th32ParentProcessID: 0,
+            th32ProcessID: 0,
+        };
+
+        entry
+    }
+
+    #[cfg(windows)]
+    pub fn set_priority_for_process_if_running(
+        &mut self,
+        process_name: &str,
+        process_priority: u32,
+    ) -> u32 {
         use std::ffi::CStr;
         self.snapshot = self.windows_create_toolhelp_32_snapshot();
+        self.entry = self.windows_initialise_process_entry();
         let mut pid = 0;
 
         if self.windows_process_32_first() {
             while self.windows_process_32_next() {
                 let current_process_name = unsafe { CStr::from_ptr(self.entry.szExeFile.as_ptr()) };
                 if current_process_name.to_str().unwrap() == process_name {
-                    pid = self.get_pid_from_process_entry();
+                    pid = self.set_priority_for_process_(process_priority);
                     break;
                 }
             }
@@ -114,35 +139,12 @@ impl<'a> WindowsProcesses<'a> {
 }
 
 #[cfg(windows)]
-fn windows_initialise_process_entry() -> PROCESSENTRY32 {
-    use std::mem::size_of;
-
-    let process_entry_size = size_of::<PROCESSENTRY32>();
-    let entry = PROCESSENTRY32 {
-        cntThreads: 0,
-        cntUsage: 0,
-        dwFlags: 0,
-        dwSize: process_entry_size as u32,
-        pcPriClassBase: 0,
-        szExeFile: [0; 260],
-        th32DefaultHeapID: 0,
-        th32ModuleID: 0,
-        th32ParentProcessID: 0,
-        th32ProcessID: 0,
-    };
-
-    entry
-}
-
-#[cfg(windows)]
-pub fn get_process_id_from_name(process_name: &str) -> u32 {
-    let mut entry = windows_initialise_process_entry();
-
-    let mut windows_process = WindowsProcesses {
-        entry: &mut entry,
+pub fn set_cpu_priority_for_process(process_name: &str, process_priority: u32) -> u32 {
+    let mut windows_process = WindowsProcessPriority {
+        entry: unsafe { std::mem::zeroed() },
         snapshot: unsafe { std::mem::zeroed() },
     };
-    let pid = windows_process.get_pid_from_process_name(process_name);
+    let pid = windows_process.set_priority_for_process_if_running(process_name, process_priority);
 
     if pid != 0 {
         println!("The process ID returned: {:?}", pid);
@@ -154,7 +156,7 @@ pub fn get_process_id_from_name(process_name: &str) -> u32 {
 }
 
 #[cfg(not(windows))]
-pub fn get_process_id_from_name(_process_name: &str) -> u32 {
+pub fn set_cpu_priority_for_process(_process_name: &str, _process_priority: u32) -> u32 {
     println!("This function has not yet been implemented on this platform...");
     0
 }

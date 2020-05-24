@@ -2,6 +2,10 @@
 mod process;
 
 fn main() {
-    let process_id = process::get_process_id_from_name("OVRServer_x64.exe");
+    extern crate winapi;
+    use winapi::um::winbase::HIGH_PRIORITY_CLASS;
+
+    let process_id =
+        process::set_cpu_priority_for_process("OVRServer_x64.exe", HIGH_PRIORITY_CLASS);
     println!("Returned process ID: {:?}", process_id);
 }
