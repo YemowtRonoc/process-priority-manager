@@ -8,10 +8,33 @@ struct WindowsProcesses<'a> {
 }
 impl<'a> WindowsProcesses<'a> {
     #[cfg(windows)]
+    fn set_process_priority(&self, process_handle: HANDLE, priority_level: u32) -> bool {
+        use winapi::shared::minwindef::{BOOL, FALSE};
+        use winapi::um::processthreadsapi::SetPriorityClass;
+
+        let result: BOOL = unsafe { SetPriorityClass(process_handle, priority_level) };
+
+        if result == FALSE {
+            println!(
+                "Failed to set {:?} priority on process: {:?}",
+                "HIGH", self.entry.th32ProcessID
+            );
+            false
+        } else {
+            println!(
+                "Successfully set {:?} priority on process with ID: {:?}",
+                "HIGH", self.entry.th32ProcessID
+            );
+            true
+        }
+    }
+
+    #[cfg(windows)]
     fn get_pid_from_process_entry(&self) -> u32 {
         use winapi::shared::minwindef::FALSE;
         use winapi::um::handleapi::CloseHandle;
         use winapi::um::processthreadsapi::{GetProcessId, OpenProcess};
+        use winapi::um::winbase::HIGH_PRIORITY_CLASS;
         use winapi::um::winnt::PROCESS_ALL_ACCESS;
 
         let process_handle =
@@ -19,6 +42,8 @@ impl<'a> WindowsProcesses<'a> {
 
         // Do stuff..
         let pid = unsafe { GetProcessId(process_handle) };
+
+        self.set_process_priority(process_handle, HIGH_PRIORITY_CLASS);
 
         unsafe {
             CloseHandle(process_handle);
