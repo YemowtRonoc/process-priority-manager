@@ -23,14 +23,10 @@ impl WindowsProcessPriority {
         if result == FALSE {
             println!(
                 "Failed to set {:?} priority on process: {:?}",
-                "HIGH", self.entry.th32ProcessID
+                priority_level, self.entry.th32ProcessID
             );
             false
         } else {
-            println!(
-                "Successfully set {:?} priority on process with ID: {:?}",
-                "HIGH", self.entry.th32ProcessID
-            );
             true
         }
     }
@@ -146,9 +142,7 @@ pub fn set_cpu_priority_for_process(process_name: &str, process_priority: u32) -
     };
     let pid = windows_process.set_priority_for_process_if_running(process_name, process_priority);
 
-    if pid != 0 {
-        println!("The process ID returned: {:?}", pid);
-    } else {
+    if pid == 0 {
         println!("Failed to get valid process ID");
     }
 
@@ -159,4 +153,33 @@ pub fn set_cpu_priority_for_process(process_name: &str, process_priority: u32) -
 pub fn set_cpu_priority_for_process(_process_name: &str, _process_priority: u32) -> u32 {
     println!("This function has not yet been implemented on this platform...");
     0
+}
+
+pub fn enumerate_priority_level(priority_str: &str) -> u32 {
+    use winapi::um::winbase::{
+        ABOVE_NORMAL_PRIORITY_CLASS, BELOW_NORMAL_PRIORITY_CLASS, HIGH_PRIORITY_CLASS,
+        IDLE_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS, PROCESS_MODE_BACKGROUND_BEGIN,
+        PROCESS_MODE_BACKGROUND_END, REALTIME_PRIORITY_CLASS,
+    };
+
+    const REALTIME: &str = "realtime";
+    const HIGH: &str = "high";
+    const ABOVE_NORMAL: &str = "above normal";
+    const NORMAL: &str = "normal";
+    const BELOW_NORMAL: &str = "below normal";
+    const IDLE: &str = "idle";
+    const BACKGROUND_BEGIN: &str = "background begin";
+    const BACKGROUND_END: &str = "background end";
+
+    match priority_str.to_lowercase().as_str() {
+        REALTIME => REALTIME_PRIORITY_CLASS,
+        HIGH => HIGH_PRIORITY_CLASS,
+        ABOVE_NORMAL => ABOVE_NORMAL_PRIORITY_CLASS,
+        NORMAL => NORMAL_PRIORITY_CLASS,
+        BELOW_NORMAL => BELOW_NORMAL_PRIORITY_CLASS,
+        IDLE => IDLE_PRIORITY_CLASS,
+        BACKGROUND_BEGIN => PROCESS_MODE_BACKGROUND_BEGIN,
+        BACKGROUND_END => PROCESS_MODE_BACKGROUND_END,
+        _ => 0,
+    }
 }
