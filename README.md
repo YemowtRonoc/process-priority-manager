@@ -36,9 +36,9 @@ The priority levels for processes, according to the MSDN documentation, are as f
 The values on the left in the above table will be the possible values for use as ```process_priority``` in the ```process_config.json``` configuration file.
 
 # Automation
-To run this program automatically, it is recommended to use the in-built Windows Task Scheduler. To open this software, simply search in your start menu ```Task Scheduler``` and it should appear. You then want to ```Create a Basic Task```. Give it a ```Name``` that you will remember, and a ```Description``` that accurately describes what you want it to do. Choose how frequently you want to run the task (I choose ```When I log on```). We want to ```start a program``` on the next dialog. On the next page, you will want to choose the path to the executable for the process manager. Finally, click ```Finish```.
+To run this program automatically, it is recommended to use the in-built Windows Task Scheduler. To open this software, simply search in your start menu for ```Task Scheduler``` and it should appear. You then want to ```Create a Basic Task```. Give it a ```Name``` that you will remember, and a ```Description``` that accurately describes what you want it to do. Choose how frequently you want to run the task (I choose ```When I log on```). We want to ```Start a Program``` on the next dialog. On the next page, you will want to choose the path to the executable for the process manager. Finally, click ```Finish```.
 
-This should now run automatically everytime you log in, or however frequently you have chosen to run the software. If you want to run it once every hour, for example, the option should be in the task properties. 
+This should now run automatically everytime you log in, or however frequently you have chosen to run the software. If you want to run it once every hour, for example, the option should be available in the task properties. 
 
 # Original Purpose
 This software was originally created to change the priority of OVRServer_x64 process on Windows. For some systems, including my own, this change made Oculus Link more stable in use.
