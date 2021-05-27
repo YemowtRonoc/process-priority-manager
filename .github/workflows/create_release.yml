@@ -23,5 +23,5 @@ jobs:
     - name: Create Release
       uses: ncipollo/release-action@v1.8.6
       with:
-        artifacts: "./process-priority-manager/target/debug/deps/*.exe"
+        artifacts: "./target/debug/deps/*.exe"
         token: ${{ secrets.GITHUB_TOKEN }}
