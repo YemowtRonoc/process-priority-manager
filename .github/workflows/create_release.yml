@@ -23,5 +23,5 @@ jobs:
     - name: Create Release
       uses: ncipollo/release-action@v1.8.6
       with:
-        artifacts: "./target/debug/deps/*.exe"
+        artifacts: "./process_config.json,./target/debug/deps/*.exe"
         token: ${{ secrets.GITHUB_TOKEN }}

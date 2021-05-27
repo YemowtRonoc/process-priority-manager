@@ -1,0 +1,12 @@
+{
+    "processes": [
+        {
+            "process_name": "OVRServer_x64.exe",
+            "process_priority": "high"
+        },
+        {
+            "process_name": "explorer.exe",
+            "process_priority": "AboVe NormAL"
+        }
+    ]
+}
