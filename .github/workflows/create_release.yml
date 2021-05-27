@@ -2,18 +2,14 @@ name: Release Build
 
 on:
   push:
-    # Sequence of patterns matched against refs/heads
     branches:    
       - master
-    # Sequence of patterns matched against refs/tags
     tags:        
       - release*
       - v1.*
 
-
 jobs:
   build:
-
     runs-on: windows-latest
 
     steps:
