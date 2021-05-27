@@ -17,3 +17,8 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Create Release
+      uses: ncipollo/release-action@v1.8.6
+      with:
+        artifacts: "./*.exe"
+        token: ${{ secrets.GITHUB_TOKEN }}
