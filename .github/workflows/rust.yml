@@ -21,4 +21,5 @@ jobs:
       uses: ncipollo/release-action@v1.8.6
       with:
         artifacts: "./*.exe"
+        tag: "Release (Latest)"
         token: ${{ secrets.GITHUB_TOKEN }}
